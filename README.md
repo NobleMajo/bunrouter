@@ -12,23 +12,23 @@
 A simple [express](https://expressjs.com/de/starter/hello-world.html)-like router written for [bun.serve()](https://bun.sh/docs/api/http).  
 Bun dont has a buildin router, so use this.
 
-Uses the speed of the bun for simple, known and solid routing experience.
+Uses the speed of the bun for a simple, known and solid routing experience.
 
 # Features
 
 - **non-async-first**: Tries to resolve a request in a non-async way until an async handler is hit.
+- **wildcards**: Can handle double wildcards (`**`) as any recursive path and 
+  single wildcards (`*`) as any path part. *It also provides a path params string array.*
+- **cookie-handling**: Cookie parsing can be enabled via a middleware ([example](https://github.com/NobleMajo/bun-router/blob/main/examples/cookies.ts)).  
+  If enabled cookies can also automatically be set/unset to the response headers. 
+- **static-serve**: Serves static files via a middleware ([example](https://github.com/NobleMajo/bun-router/blob/main/examples/static-serve.ts)).
+- **redirect-handler**: You can redirect via the `ResponseBuilder` or
+  via a redirect middleware ([example](https://github.com/NobleMajo/bun-router/blob/main/examples/redirect.ts)).
+- **websocket-support**: Can handle websocket request via a middleware ([example](https://github.com/NobleMajo/bun-router/blob/main/examples/websocket.ts)).
 - **merged-routes**: If 2 or more routes are defined one after the other with the same method and path,
   they will be merged into a single handler to avoid re-checking.
 - **method-enum**: You just write `GET`, but in the background it is converted to an enum.  
   *This is for faster method comparison.*
-- **cookie-handling**: Cookie parsing can be enabled via a middleware.  
-  If enabled cookies can also automatically be set/unset to the response headers. 
-- **static-serve**: Serves static files via a middleware.
-- **redirect-handler**: You can redirect via the `ResponseBuilder` or
-  via a redirect middleware.
-- **websocket-support**: Can handle websocket request via a middleware.
-- **wildcards**: Can handle double wildcards (`**`) as any recursive path and 
-  single wildcards (`*`) as any path part. *It also provides a path params string array.*
 
 # Install
 
@@ -63,11 +63,18 @@ console.info(router.dump(server))
 
 # Examples
 
-Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/main/examples).
+Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/main/examples):
+- [simple example](https://github.com/NobleMajo/bun-router/blob/main/examples/simple.ts)
+- [static-serve example](https://github.com/NobleMajo/bun-router/blob/main/examples/static-serve.ts)
+- [websocket example](https://github.com/NobleMajo/bun-router/blob/main/examples/websocket.ts)
+- [redirect example](https://github.com/NobleMajo/bun-router/blob/main/examples/redirect.ts)
+- [cookies example](https://github.com/NobleMajo/bun-router/blob/main/examples/cookies.ts)
 
-# Future
+# Future features
 Here are some feature ideas for future development:
-- ...soon...
+- **CORS-support**: Configure CORS headers via a buildin middleware.
+- **listen**: Listen function to start the server via the router.
+- 
 
 # Contributing
 Contributions to bun-router are welcome!  
