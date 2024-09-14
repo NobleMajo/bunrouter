@@ -14,7 +14,7 @@ Bun dont has a buildin router, so i created this one and it dont need any depend
 
 Uses the speed of the bun for a simple, known and solid routing experience.
 
-# Features
+# features
 
 - **non-async-first**: Tries to resolve a request in a non-async way until an async handler is hit.
 - **wildcards**: Can handle double wildcards (`**`) as any recursive path and 
@@ -30,19 +30,23 @@ Uses the speed of the bun for a simple, known and solid routing experience.
 - **method-enum**: You just write `GET`, but in the background it is converted to an enum.  
   *This is for faster method comparison.*
 
-# Install
+# how it works
+
+# usage
+
+## install
 
 ```sh
 bun i github:NobleMajo/bun-router
 ```
 
-# Import 
+## import 
 
 ```ts
 import { Router } from "bun-router/src/index";
 ```
 
-# Usage
+## example
 
 ```ts
 import { Router } from "bun-router/src/index";
@@ -61,7 +65,7 @@ export const server = Bun.serve({
 console.info(router.dump(server))
 ```
 
-# Examples
+# examples
 
 Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/main/examples):
 - [simple example](https://github.com/NobleMajo/bun-router/blob/main/examples/simple.ts)
@@ -70,11 +74,11 @@ Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/
 - [redirect example](https://github.com/NobleMajo/bun-router/blob/main/examples/redirect.ts)
 - [cookies example](https://github.com/NobleMajo/bun-router/blob/main/examples/cookies.ts)
 
-# Future features
+# future features
 Here are some feature ideas for future development:
 - **CORS-support**: Configure CORS headers via a buildin middleware.
 - **listen**: Listen function to start the server via the router.
-- 
+- ****:
 
 # Contributing
 Contributions to bun-router are welcome!  
