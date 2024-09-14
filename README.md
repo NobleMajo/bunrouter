@@ -10,9 +10,9 @@
 # bun-router
 
 A simple [express](https://expressjs.com/de/starter/hello-world.html)-like router written for [bun.serve()](https://bun.sh/docs/api/http).  
-Bun dont has a buildin router, so i created this one and it dont need any dependencies.
+Bun does not have a built-in router, so I created this one without any dependencies.
 
-Uses the speed of the bun for a simple, known and solid routing experience.
+Uses the speed of the bun for a simple, familiar and solid routing experience.
 
 # features
 
