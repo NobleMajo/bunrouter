@@ -1,6 +1,6 @@
 
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=devDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnoblemajo%2FBunRouter%2Fmain%2Fpackage.json)
+![typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=peerDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnoblemajo%2FBunRouter%2Fmain%2Fpackage.json)
 ![](https://img.shields.io/badge/dynamic/json?color=green&label=watchers&query=watchers&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter)
 ![](https://img.shields.io/badge/dynamic/json?color=yellow&label=stars&query=stargazers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter)
 ![](https://img.shields.io/badge/dynamic/json?color=navy&label=forks&query=forks&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter)
@@ -67,7 +67,7 @@ Checkout the bunrouter [examples](https://github.com/NobleMajo/BunRouter/tree/ma
 
 # Future
 Here are some feature ideas for future development:
-- ****
+- ...soon...
 
 # Contributing
 Contributions to bunrouter are welcome!  
