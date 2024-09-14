@@ -29,6 +29,8 @@ Uses the speed of the bun for a simple, known and solid routing experience.
   they will be merged into a single handler to avoid re-checking.
 - **method-enum**: You just write `GET`, but in the background it is converted to an enum.  
   *This is for faster method comparison.*
+- **dump-router**: You can create a string router dump that lists the defined routes.
+  If you provide a bun server, it also adds a `server-is-running-on` message.
 
 # how it works
 
@@ -62,6 +64,7 @@ export const server = Bun.serve({
     fetch: router.handle,
 })
 
+// dumps router routes and server-is-running-on message
 console.info(router.dump(server))
 ```
 
@@ -74,11 +77,17 @@ Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/
 - [redirect example](https://github.com/NobleMajo/bun-router/blob/main/examples/redirect.ts)
 - [cookies example](https://github.com/NobleMajo/bun-router/blob/main/examples/cookies.ts)
 
+Run a example:
+```sh
+git clone https://github.com/NobleMajo/bun-router.git
+
+bun run examples/simple.ts
+```
+
 # future features
 Here are some feature ideas for future development:
 - **CORS-support**: Configure CORS headers via a buildin middleware.
 - **listen**: Listen function to start the server via the router.
-- ****:
 
 # Contributing
 Contributions to bun-router are welcome!  
