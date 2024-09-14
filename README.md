@@ -1,13 +1,13 @@
 
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=peerDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnoblemajo%2FBunRouter%2Fmain%2Fpackage.json)
-![](https://img.shields.io/badge/dynamic/json?color=green&label=watchers&query=watchers&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter)
-![](https://img.shields.io/badge/dynamic/json?color=yellow&label=stars&query=stargazers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter)
-![](https://img.shields.io/badge/dynamic/json?color=navy&label=forks&query=forks&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter)
-<!-- ![](https://img.shields.io/badge/dynamic/json?color=darkred&label=open%20issues&query=open_issues&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter)
-![](https://img.shields.io/badge/dynamic/json?color=orange&label=subscribers&query=subscribers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2FBunRouter) -->
+![typescript](https://img.shields.io/badge/dynamic/json?style=plastic&color=blue&label=Typescript&prefix=v&query=peerDependencies.typescript&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnoblemajo%2Fbun-router%2Fmain%2Fpackage.json)
+![](https://img.shields.io/badge/dynamic/json?color=green&label=watchers&query=watchers&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fbun-router)
+![](https://img.shields.io/badge/dynamic/json?color=yellow&label=stars&query=stargazers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fbun-router)
+![](https://img.shields.io/badge/dynamic/json?color=navy&label=forks&query=forks&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fbun-router)
+<!-- ![](https://img.shields.io/badge/dynamic/json?color=darkred&label=open%20issues&query=open_issues&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fbun-router)
+![](https://img.shields.io/badge/dynamic/json?color=orange&label=subscribers&query=subscribers_count&suffix=x&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fnoblemajo%2Fbun-router) -->
 
-# bunrouter
+# bun-router
 
 A simple [express](https://expressjs.com/de/starter/hello-world.html)-like router written for [bun.serve()](https://bun.sh/docs/api/http).  
 Bun dont has a buildin router, so use this.
@@ -33,19 +33,19 @@ Uses the speed of the bun for simple, known and solid routing experience.
 # Install
 
 ```sh
-bun i github:NobleMajo/BunRouter
+bun i github:NobleMajo/bun-router
 ```
 
 # Import 
 
 ```ts
-import { Router } from "bunrouter/src/index";
+import { Router } from "bun-router/src/index";
 ```
 
 # Usage
 
 ```ts
-import { Router } from "bunrouter/src/index";
+import { Router } from "bun-router/src/index";
 
 const router = new Router()
 
@@ -63,19 +63,19 @@ console.info(router.dump(server))
 
 # Examples
 
-Checkout the bunrouter [examples](https://github.com/NobleMajo/BunRouter/tree/main/examples).
+Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/main/examples).
 
 # Future
 Here are some feature ideas for future development:
 - ...soon...
 
 # Contributing
-Contributions to bunrouter are welcome!  
+Contributions to bun-router are welcome!  
 Interested users can refer to the guidelines provided in the [CONTRIBUTING.md](CONTRIBUTING.md) file to contribute to the project and help improve its functionality and features.
 
 # License
-bunrouter is licensed under the [MIT license](LICENSE), providing users with flexibility and freedom to use and modify the software according to their needs.
+bun-router is licensed under the [MIT license](LICENSE), providing users with flexibility and freedom to use and modify the software according to their needs.
 
 # Disclaimer
-bunrouter is provided without warranties.  
+bun-router is provided without warranties.  
 Users are advised to review the accompanying license for more information on the terms of use and limitations of liability.
