@@ -1,4 +1,4 @@
-import { type Server } from "bun"
+import { type Server, type SocketAddress } from "bun"
 import { statSync } from "fs"
 import { join } from "path"
 import type { BodyInit, Request as BunRequest } from "undici-types"
@@ -6,7 +6,7 @@ import type { BodyInit, Request as BunRequest } from "undici-types"
 export type Awaitable<T> = T | Promise<T>
 export type SplitPath = [string, ...string[]] | undefined
 
-export type HttpMethods = "GET" | "HEAD" | "POST" | "PUT" | "DELETE" | "CONNECT" | "OPTIONS" | "TRACE" | "PATCH"
+export type HttpMethodString = "GET" | "HEAD" | "POST" | "PUT" | "DELETE" | "CONNECT" | "OPTIONS" | "TRACE" | "PATCH"
 
 enum HttpMethod {
     ALL = 1,
@@ -79,16 +79,53 @@ export function stringifyHttpMethods(method: HttpMethod | undefined): string {
 }
 
 export type Request = BunRequest & {
-    pathParams: string[] | undefined,
-    splitPath: SplitPath,
-    path: string,
+
+    /**
+     * `req.pathParams` is the path parameters of the request.
+     * If a wildcard is used in the endpoint route,
+     * then it is available in a `Router` handled request.
+     */
+    pathParams?: string[],
+    /**
+     * `req.httpMethod` is the HttpMethod enum value of the reuqest method used for routing.
+     * It is always available in a `Router` handled request.
+     */
     httpMethod: HttpMethod,
+    /**
+     * `req.path` is the path of the request.
+     * It is always available in a `Router` handled request.
+     */
+    path: string,
+    /**
+     * `req.splitPath` is the splitted path of the request used for routing.
+     * It is always available in a `Router` handled request.
+     */
+    splitPath: SplitPath,
+    /**
+     * `req.server` is the server that is handling the request.
+     * It is always available in a `Router` handled request.
+     */
     server: Server,
+    /**
+     * `req.sock` is the socket address of the request.
+     * It is always available in a `Router` handled request.
+     */
+    sock: SocketAddress,
+    /**
+     * `req.originCookies` is not to use in your code.
+     * It holds the origin cookies state of the request.
+     */
     originCookies: unknown,
+    /**
+     * `req.cookies` is a key value map of all the cookies in the request if parsed earlier.
+     * Gets loaded via the `Router.storeCookies(req, res)` function.
+     */
     cookies: {
         [key: string]: string | undefined,
     },
-    rid: number,
+    /**
+     * `req.rid` is set to true if the request has been upgraded to a websocket.
+     */
     upgraded?: true
 }
 
@@ -229,30 +266,6 @@ export class ResponseBuilder {
     }
 
     /**
-     * Sets the status code to 307 (Temporary Redirect) or 308 (Permanent Redirect) and adds the "location" header.
-     * @param url The URL to redirect to
-     * @param perma Whether to use a permanent redirect. Default is false.
-     * @returns The response builder instance
-     */
-    redirect(url: string, perma: boolean = false): ResponseBuilder {
-        this.statusCode = perma ? 308 : 307
-        this.headers.push(["location", url])
-        return this
-    }
-
-    /**
-     * Sets the status code to the given value and adds the "location" header with the given URL.
-     * @param url The URL to redirect to
-     * @param status The status code
-     * @returns The response builder instance
-     */
-    redirectCustom(url: string, status: number): ResponseBuilder {
-        this.statusCode = status
-        this.headers.push(["location", url])
-        return this
-    }
-
-    /**
      * Removes the given header from the response.
      * @param name The name of the header to remove
      * @returns The response builder instance
@@ -273,34 +286,18 @@ export class ResponseBuilder {
      * @param overwrite Whether to overwrite any existing header with the same name. Default is true.
      * @returns The response builder instance
      */
-    setHeader(name: string, value: string, overwrite: boolean = true): ResponseBuilder {
+    setHeader(
+        name: string,
+        value: string,
+        overwrite: boolean = true,
+    ): ResponseBuilder {
         if (overwrite) {
             this.unsetHeader(name)
-            return this
         }
 
         this.headers.push([name, value])
 
         return this
-    }
-
-    /**
-     * Sets the body of the response.
-     * @param bodyInit The body of the response
-     * @returns The response builder instance
-     */
-    body(bodyInit: BodyInit): ResponseBuilder {
-        this.bodyInit = bodyInit
-        return this
-    }
-
-    /**
-     * Submits the response to the client, with an optional body.
-     * @param bodyInit The body of the response, if any
-     */
-    send(bodyInit?: BodyInit): void {
-        this.bodyInit = bodyInit
-        this.submit = true
     }
 
     /**
@@ -310,7 +307,11 @@ export class ResponseBuilder {
      * @param options The options for the cookie
      * @returns The response builder instance
      */
-    setCookie(name: string, value: string, options: CookieOptions = {}): ResponseBuilder {
+    setCookie(
+        name: string,
+        value: string,
+        options: CookieOptions = {},
+    ): ResponseBuilder {
         const cookieParts = [`${name}=${encodeURIComponent(value)}`]
 
         if (options.MaxAge) {
@@ -343,6 +344,73 @@ export class ResponseBuilder {
         this.setHeader('Set-Cookie', name + "=; Expires=Thu, 01 Jan 1970 00:00:00 GMT", false)
         return this
     }
+
+    /**
+     * Sets the body of the response.
+     * @param bodyInit The body of the response
+     * @returns The response builder instance
+     */
+    body(bodyInit: BodyInit): ResponseBuilder {
+        this.bodyInit = bodyInit
+        return this
+    }
+
+    /**
+     * Submits the response to the client, with an optional body.
+     * @param bodyInit The body of the response, if any
+     */
+    send(bodyInit?: BodyInit): void {
+        this.bodyInit = bodyInit
+        this.submit = true
+    }
+
+    /**
+     * Redirects to a given url. If perma is true, this is a 308 redirect, otherwise it is a 307.
+     * @param url The url to redirect to
+     * @param perma Whether this is a permanent redirect
+     * @returns void because it is submitted to the client
+     */
+    sendRedirect(url: string, perma: boolean = false): void {
+        this.reset()
+        this.statusCode = perma ? 308 : 307
+        this.headers.push(["location", url])
+        this.submit = true
+    }
+
+    /**
+     * Redirects to a given url with a custom status code.
+     * @param url The url to redirect to
+     * @param status The status code to use for the redirect
+     * @returns void because it is submitted to the client
+     */
+    sendRedirectCustom(url: string, status: number): void {
+        this.reset()
+        this.statusCode = status
+        this.headers.push(["location", url])
+        this.submit = true
+    }
+
+    /**
+     * Sets the status code to 401 and adds a basic auth `WWW-Authenticate` header.
+     * @param realm The realm to use for the header. Default is "User Visible Realm".
+     * @param charset The character set to use for the realm. Default is "UTF-8".
+     * @returns void because it is submitted to the client
+     */
+    sendBasicAuth(
+        bodyInit?: BodyInit,
+        realm: string = "User Visible Realm",
+        charset: string = "UTF-8",
+    ): void {
+        this.reset()
+        this.statusCode = 401
+        this.setHeader(
+            'WWW-Authenticate',
+            'Basic realm="' + realm +
+            '", charset="' + charset + '"'
+        )
+        this.bodyInit = bodyInit
+        this.submit = true
+    }
 }
 
 /**
@@ -371,34 +439,42 @@ export class Router {
     routes: EndpointRoute[] = []
     mergeHandlers: boolean = true
 
+
     /**
      * Parses the cookie header of the request and sets the cookies property of the request.
      * @param req The request to parse the cookies for
      */
-    parseCookies(
+    static parseCookies(
         req: Request,
+        forceReload: boolean = false,
     ): void {
-        req.cookies = {}
-
-        const cookieHeader = req.headers.get("cookie")
-        if (!cookieHeader) {
-            return
-        }
-
-        const pairs = cookieHeader.split(/; */)
-        for (const pair of pairs) {
-            const splitted = pair.split('=')
-            const name = trimSpaces(splitted[0])
-            if (name.length != 0) {
-                req.cookies[name] = decodeURIComponent(
-                    splitted
-                        .slice(1)
-                        .join('=')
-                )
+        if (!req.originCookies) {
+            req.cookies = {}
+            const cookieHeader = req.headers.get("cookie")
+            if (!cookieHeader) {
+                return
             }
-        }
-        req.originCookies = {
-            ...req.cookies
+
+            const pairs = cookieHeader.split(/; */)
+            for (const pair of pairs) {
+                const splitted = pair.split('=')
+                const name = trimSpaces(splitted[0])
+                if (name.length != 0) {
+                    req.cookies[name] = decodeURIComponent(
+                        splitted
+                            .slice(1)
+                            .join('=')
+                    )
+                }
+            }
+
+            req.originCookies = {
+                ...req.cookies
+            }
+        } else if (forceReload) {
+            req.cookies = {
+                ...req.originCookies
+            }
         }
     }
 
@@ -410,10 +486,17 @@ export class Router {
      * @param req The request that contains the cookies.
      * @param res The response that will be modified.
      */
-    storeCookies(
+    static storeCookies(
         req: Request,
         res: ResponseBuilder,
     ): void {
+        if (!req.cookies) {
+            res.reset()
+                .status(500)
+                .send("Request cookies store error")
+            return
+        }
+
         const newCookies = req.cookies
         const oldCookies: {
             [key: string]: string
@@ -449,7 +532,7 @@ export class Router {
      * @param mergedToTop Whether the handler is merged to the top
      * @returns A string with 3 parts: method, path and name
      */
-    private getDefinitionString(
+    private static getDefinitionString(
         route: EndpointRoute,
         handler: RequestMiddleware,
         mergedToTop: boolean,
@@ -499,7 +582,7 @@ export class Router {
      * @param server The server to print the url of
      * @returns A string representing the table of endpoints
      */
-    dump(server?: Server): string {
+    dump(...servers: Server[]): string {
         if (this.routes.length == 0) {
             throw new Error("No endpoint routes defined")
         }
@@ -508,7 +591,7 @@ export class Router {
         let mergedParts: [string, string, string][] = []
         for (const route of this.routes) {
             mergedParts.push(
-                this.getDefinitionString(
+                Router.getDefinitionString(
                     route,
                     route.handler,
                     false
@@ -518,7 +601,7 @@ export class Router {
             unmergedParts.push(
                 ...unmergeRequestMiddleware(route.handler)
                     .map(
-                        (middleware, index) => this.getDefinitionString(
+                        (middleware, index) => Router.getDefinitionString(
                             route,
                             middleware,
                             index != 0,
@@ -543,10 +626,17 @@ export class Router {
 
         const lines: string[] = []
 
-        if (server) {
-            lines.push(
-                "Server is listening on " + server.url
-            )
+        if (servers && servers.length != 0) {
+            if (servers.length == 1) {
+                lines.push("Server is listening on " + servers[0].url)
+            } else {
+                lines.push("Server is listening on:")
+                lines.push(
+                    ...servers.map(
+                        (server) => "- " + server.url
+                    )
+                )
+            }
         }
 
         lines.push(
@@ -605,8 +695,14 @@ export class Router {
         const req = request as Request
         req.httpMethod = parseHttpMethods(req.method)
         req.server = server
+        req.cookies = {}
         req.path = new URL(req.url).pathname
         req.splitPath = splitPath(req.path)
+        const sock = req.server.requestIP(req)
+        if (!sock) {
+            return new Response("Request closed to early", { status: 500 })
+        }
+        req.sock = sock
 
         const p = this.route(req, res)
         if (
@@ -670,7 +766,7 @@ export class Router {
                 continue
             }
 
-            const pathParams = pathFitsRouterDef(
+            const pathParams = requestPathMatchesRouteDefinition(
                 req.splitPath,
                 this.routes[i].splitPath,
             )
@@ -743,7 +839,7 @@ export class Router {
                 continue
             }
 
-            const pathParams = pathFitsRouterDef(
+            const pathParams = requestPathMatchesRouteDefinition(
                 req.splitPath,
                 this.routes[i].splitPath,
             )
@@ -787,7 +883,7 @@ export class Router {
      * @returns The router
      */
     use(
-        method: "*" | HttpMethods,
+        method: "*" | HttpMethodString,
         path: string,
         handler: RequestMiddleware,
         ...handlers: RequestMiddleware[]
@@ -802,7 +898,7 @@ export class Router {
         ]
 
         const route: EndpointRoute = {
-            splitPath: splitPath(path),
+            splitPath: splitRoutePath(path),
             method: parseHttpMethods(method),
             handler: handler
         }
@@ -1031,40 +1127,24 @@ export class Router {
         return this
     }
 
-    /**
-     * Register a handler to redirect all requests from the given path to the given target.
-     * @param path The path to redirect from
-     * @param redirectTarget The target to redirect to
-     * @param perma If true, the redirect will be a 301 permanent redirect. Otherwise, it will be a 302 temporary redirect.
-     * @returns The router
-     */
     redirect(
+        method: "*" | HttpMethodString,
         path: string,
         redirectTarget: string,
         perma: boolean = false,
     ): Router {
-        const redirectHandler: RequestMiddleware =
-            (req, res) =>
-                res.redirect(redirectTarget, perma)
-                    .send()
+        const redirectMiddleware: RequestMiddleware =
+            (_, res) => res.sendRedirect(redirectTarget, perma)
+
         this.use(
-            "GET",
+            method,
             path,
-            redirectHandler,
+            redirectMiddleware,
         )
+
         return this
     }
 
-    /**
-     * Register a handler to serve static files from the given directory.
-     * You can customize the behavior of the handler by passing options.
-     * @param path The path to serve the static files from
-     * @param targetDir The directory to serve the static files from
-     * @param options An object with the following properties:
-     *   - `indexFile`: The file to serve as the index. Defaults to `index.html`.
-     *   - `indexAlias`: An array of paths that should serve the index file. Defaults to `[]`.
-     * @returns The router
-     */
     static(
         path: string,
         targetDir: string,
@@ -1077,12 +1157,27 @@ export class Router {
 
         const staticMiddleware: RequestMiddleware =
             (req, res) => {
-                const targetPath = join(
+                let targetPath = join(
                     targetDir,
                     req.splitPath == undefined ?
-                        indexFile :
+                        "/" :
                         req.path
                 )
+
+                if (targetPath.endsWith("/" + indexFile)) {
+                    res.sendRedirect(
+                        targetPath.substring(
+                            0,
+                            targetPath.length - indexFile.length - 1
+                        ),
+                        true,
+                    )
+                    return
+                }
+
+                if (targetPath.endsWith("/")) {
+                    targetPath += indexFile
+                }
 
                 if (
                     req.splitPath != undefined &&
@@ -1107,36 +1202,95 @@ export class Router {
             path,
             staticMiddleware
         )
+
         return this
     }
 
-    /**
-     * Mounts a cookie parser middleware on the given path.
-     * The middleware will parse cookies from the incoming request and store
-     * them in the request object.
-     * If `autoUpdate` is set to true, the cookie parser will also update the
-     * response headers with the modified cookies.
-     * @param {string} method The HTTP method to mount the middleware on. The
-     *                        special value `"*"` will mount on all HTTP
-     *                        methods.
-     * @param {string} path The path to mount the middleware on.
-     * @param {boolean} [autoUpdate=false] Whether to update the response object
-     *                                     with the modified cookies.
-     * @returns {Router} The router object.
-     */
-    cookies(
-        method: "*" | HttpMethods,
+    basicAuth(
+        method: "*" | HttpMethodString,
         path: string,
-        autoUpdate: boolean = false,
+        validator: ((username: string, password: string) => boolean),
+        realm: string = "User Visible Realm",
+        charset: string = "UTF-8",
     ): Router {
-        const cookiesMiddleware: RequestMiddleware = (req, res) => {
-            if (autoUpdate) {
-                res.beforeSent(
-                    (res) => this.storeCookies(req, res)
+        const basicAuthMiddleware: RequestMiddleware = (req, res) => {
+            const auth = req.headers.get("authorization")
+            if (!auth) {
+                res.sendBasicAuth(
+                    "Missing authorization header",
+                    realm,
+                    charset
                 )
+                return
             }
-            this.parseCookies(req)
+            let splitIndex = auth.indexOf(" ")
+            if (splitIndex === -1) {
+                res.sendBasicAuth(
+                    "Unprocessable authorization header",
+                    realm,
+                    charset
+                )
+                return
+            }
+
+            const schema = auth.slice(0, splitIndex)
+            if (schema !== "Basic") {
+                res.sendBasicAuth(
+                    "Unprocessable basic auth schema",
+                    realm,
+                    charset
+                )
+                return
+            }
+
+            const credentials = atob(auth.slice(splitIndex + 1))
+
+            splitIndex = credentials.indexOf(":")
+            if (splitIndex === -1) {
+                res.sendBasicAuth(
+                    "Unprocessable basic auth credentials",
+                    realm,
+                    charset
+                )
+                return
+            }
+
+            if (!validator(
+                credentials.slice(0, splitIndex),
+                credentials.slice(splitIndex + 1)
+            )) {
+                res.sendBasicAuth(
+                    "Invalid credentials",
+                    realm,
+                    charset
+                )
+                return
+            }
         }
+
+        this.use(
+            method,
+            path,
+            basicAuthMiddleware
+        )
+
+        return this
+    }
+
+    cookies(
+        method: "*" | HttpMethodString,
+        path: string,
+        autoResponseHeaders: boolean = false,
+    ): Router {
+        const cookiesMiddleware: RequestMiddleware =
+            autoResponseHeaders ?
+                (req, res) => {
+                    res.beforeSent(
+                        (res) => Router.storeCookies(req, res)
+                    )
+                    Router.parseCookies(req)
+                } :
+                (req) => Router.parseCookies(req)
 
         this.use(
             method,
@@ -1341,7 +1495,7 @@ export function trimSpaces(value: string): string {
  */
 export function splitPath(path: string | undefined): SplitPath {
     if (path == undefined) {
-        return ["**"]
+        return undefined
     }
 
     while (
@@ -1377,21 +1531,36 @@ export function splitPath(path: string | undefined): SplitPath {
             }
 
             while (
-
                 part.endsWith("/") ||
                 part.endsWith(" ")
             ) {
                 part = part.slice(0, -1)
             }
+
             return part
         })
         .filter((v) => v.length != 0)
-
     if (splitPath.length == 0) {
         return undefined
     }
 
     return splitPath as SplitPath
+}
+
+export function splitRoutePath(path: string | undefined): SplitPath {
+    const splittedPath = splitPath(path)
+
+    if (
+        splittedPath &&
+        splittedPath.length > 1 &&
+        splittedPath.slice(0, -1).includes("**")
+    ) {
+        throw new Error(
+            "Invalid router path, ** must be the last part"
+        )
+    }
+
+    return splittedPath as SplitPath
 }
 
 /**
@@ -1402,7 +1571,7 @@ export function splitPath(path: string | undefined): SplitPath {
  * @param requestPath the path to check
  * @param routeSelector the route selector to check against
  */
-export function pathFitsRouterDef(
+export function requestPathMatchesRouteDefinition(
     requestPath: SplitPath,
     routeSelector: SplitPath,
 ): string[] | boolean {
@@ -1414,7 +1583,6 @@ export function pathFitsRouterDef(
     } else if (
         routeSelector == undefined
     ) {
-
         return false
     } else if (
         requestPath == undefined
@@ -1424,10 +1592,13 @@ export function pathFitsRouterDef(
         }
         return false
     } else if (
-        routeSelector.length == 0 &&
         requestPath.length == 0
     ) {
-        return []
+        throw new Error("Invalid requestPath SplitPath length, got 0, expected at least 1")
+    } else if (
+        routeSelector.length == 0
+    ) {
+        throw new Error("Invalid routeSelector SplitPath length, got 0, expected at least 1")
     } else if (routeSelector[0] == "**") {
         return requestPath
     } else if (routeSelector.length < requestPath.length) {
@@ -1439,27 +1610,29 @@ export function pathFitsRouterDef(
     let pathParams: string[] | true = true
 
     for (let i = 0; i < routeSelector.length; i++) {
-        if (routeSelector[i] === '*') {
-            if (requestPath.length <= i) {
-                return false
-            }
-            if (pathParams === true) {
-                pathParams = []
-            }
-            pathParams.push(requestPath[i])
-        } else if (routeSelector[i] !== requestPath[i]) {
-            if (routeSelector[i] === '**') {
+        switch (routeSelector[i]) {
+            case "*":
+                if (requestPath.length <= i) {
+                    return false
+                }
+                if (pathParams === true) {
+                    pathParams = []
+                }
+                pathParams.push(requestPath[i])
+                break
+            case "**":
                 if (requestPath.length - i > 0) {
                     if (pathParams === true) {
                         pathParams = []
                     }
                     pathParams.push(...requestPath.slice(i))
                 }
-
                 return pathParams
-            } else {
+            case requestPath[i]:
+                break
+            default:
                 return false
-            }
+
         }
     }
 

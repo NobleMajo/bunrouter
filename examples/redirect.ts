@@ -8,10 +8,10 @@ router.get("/", (req, res) => {
 })
 
 // redirects / to /hello
-router.redirect("/hello", "/")
+router.redirect("*", "/hello", "/")
 
 // redirects /google to https://google.com
-router.redirect("/google", "https://google.com")
+router.redirect("*", "/google", "https://google.com")
 
 export const server = Bun.serve({
     fetch: router.handle,
