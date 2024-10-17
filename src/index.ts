@@ -1157,23 +1157,20 @@ export class Router {
 
         const staticMiddleware: RequestMiddleware =
             (req, res) => {
+                if (req.path.endsWith("/" + indexFile)) {
+                    res.sendRedirect(
+                        req.path.slice(0, -indexFile.length),
+                        true,
+                    )
+                    return
+                }
+
                 let targetPath = join(
                     targetDir,
                     req.splitPath == undefined ?
                         "/" :
                         req.path
                 )
-
-                if (targetPath.endsWith("/" + indexFile)) {
-                    res.sendRedirect(
-                        targetPath.substring(
-                            0,
-                            targetPath.length - indexFile.length - 1
-                        ),
-                        true,
-                    )
-                    return
-                }
 
                 if (targetPath.endsWith("/")) {
                     targetPath += indexFile
