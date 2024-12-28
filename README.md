@@ -23,14 +23,9 @@ Bun does not have a built-in router, so I created this one without any runtime d
   If enabled cookies can also automatically be set/unset to the response headers. 
 - **static-serve**: Serves static files via a middleware ([example](https://github.com/NobleMajo/bunrouter/blob/main/examples/static-serve.ts)).
 - **redirect-handler**: You can redirect via the `ResponseBuilder` or
-<<<<<<< Updated upstream
-  via a redirect middleware ([example](https://github.com/NobleMajo/bunrouter/blob/main/examples/redirect.ts)).
-- **websocket-support**: Can handle websocket request via a middleware ([example](https://github.com/NobleMajo/bunrouter/blob/main/examples/websocket.ts)).
-=======
   via a redirect middleware ([example](https://github.com/NobleMajo/bun-router/blob/main/examples/redirect.ts)).
 - **websocket-support**: Can handle websocket request via a middleware ([example](https://github.com/NobleMajo/bun-router/blob/main/examples/websocket.ts)).
 - **basic-auth**: Protects the following via http basic auth ([example](https://github.com/NobleMajo/bun-router/blob/main/examples/basic-auth.ts)).
->>>>>>> Stashed changes
 - **merged-routes**: If 2 or more routes are defined one after the other with the same method and path,
   they will be merged into a single handler to avoid re-checking.
 - **method-enum**: You just write `GET`, but in the background it is converted to an enum.  
@@ -76,14 +71,6 @@ console.info(router.dump(server))
 
 # examples
 
-<<<<<<< Updated upstream
-Checkout the bunrouter [examples](https://github.com/NobleMajo/bunrouter/tree/main/examples):
-- [simple example](https://github.com/NobleMajo/bunrouter/blob/main/examples/simple.ts)
-- [static-serve example](https://github.com/NobleMajo/bunrouter/blob/main/examples/static-serve.ts)
-- [websocket example](https://github.com/NobleMajo/bunrouter/blob/main/examples/websocket.ts)
-- [redirect example](https://github.com/NobleMajo/bunrouter/blob/main/examples/redirect.ts)
-- [cookies example](https://github.com/NobleMajo/bunrouter/blob/main/examples/cookies.ts)
-=======
 Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/main/examples):
 - [simple example](https://github.com/NobleMajo/bun-router/blob/main/examples/simple.ts)
 - [static-serve example](https://github.com/NobleMajo/bun-router/blob/main/examples/static-serve.ts)
@@ -91,7 +78,6 @@ Checkout the bun-router [examples](https://github.com/NobleMajo/bun-router/tree/
 - [redirect example](https://github.com/NobleMajo/bun-router/blob/main/examples/redirect.ts)
 - [cookies example](https://github.com/NobleMajo/bun-router/blob/main/examples/cookies.ts)
 - [basic auth example](https://github.com/NobleMajo/bun-router/blob/main/examples/basic-auth.ts)
->>>>>>> Stashed changes
 
 Run a example:
 ```sh
